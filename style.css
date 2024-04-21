@@ -37,11 +37,18 @@
   }
 body{
   color: white;
-  background-color: black;
+  background-color: rgb(19, 18, 18);
 }
 .allButton{
   user-select: none;
-  cursor: pointer; 
+  margin-left: 30%;
+  margin-right: 30%;
+  cursor: pointer;
+  transition: font-size 0.2s ease;
+}
+.allButton:hover{
+  font-size: 130%;
+  background-color: rgb(37, 36, 36);
 }
 .disabled{
   color: red;

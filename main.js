@@ -1,10 +1,7 @@
-
-
 let allBakedCookies = 0; // all baked cookies so far
 let cookies = 0; //current number of cookies
 //how many points a single click gives
 const priceModifier = 0.15; //modifies the price after evry new building
-
 //-----you have to define all the building in the 2 json------
 const points = {
     "singleClick" : 1,
@@ -38,12 +35,13 @@ const cpsHolder = {
     cps : 0,
     cpsBoosted : 0,
 }
+const disabled = {}
 
 
 fillJSON();//fils the empty objects
 loadAllBuilding();// loads all building
 loadMultipliers();//loads all multiplier
-
+console.log(Object.values(multiplier["Auto Clicker"]).includes(240));
 
 //handles both user input and automatic clicks
 function handleClick(type){
@@ -129,7 +127,6 @@ function recalculateMultiplier(){
     for(let key in multiplier){
         if(key != "multiplier" && key != "singleClick" && count[key] > 0){
             multiplier.multiplier += count[key]/count.buildings * multiplier[key].multiplier;;
-            console.log(multiplier.multiplier)
         }
     }
 }
@@ -158,9 +155,12 @@ function fillJSON(){
     for(let key in prices){
         multiplier[key] = {
             "multiplier":0,
-            "price": prices[key]+prices[key]*0.5
-    };
+            "price": prices[key]+prices[key]*5
+            };
         count[key] = 0;
+        //should be false to load them to the screen at start
+        disabled[key] = false;
+        disabled[key+"multiplier"] = false;
     }
 }
 
@@ -168,15 +168,33 @@ function fillJSON(){
 function loadMultipliers(){
     
     const multiplierHolder = document.getElementById("modifierHolder");
-    multiplierHolder.innerHTML = "";
+   
+    let shouldRefresh = false;
+    
     for(let key in multiplier){
-        if(key != "multiplier" && key != "singleClick"){
-            let isDisabled = "";
-            if(cookies < multiplier[key].price || count[key] == 0){
-                isDisabled = "disabled";
+        let previous = disabled[key+"multiplier"];
+        if(cookies < multiplier[key].price || count[key] == 0){
+            disabled[key+"multiplier"] = true;
+        }
+        else{
+            disabled[key+"multiplier"] = false;
+        }
+        
+        if(previous != disabled[key+"multiplier"]){
+            shouldRefresh = true;
+        }
+    }
+    if(shouldRefresh){
+        multiplierHolder.innerHTML = "";
+        for(let key in multiplier){
+            if(key != "multiplier" && key != "singleClick"){
+                let isDisabled = "";
+                if(disabled[key+"multiplier"]){
+                    isDisabled = "disabled"
+                }
+                let htmlContent = "<div onclick='buyMultiplier(\"" + key + "\")' class='allButton "+isDisabled+"'>"+key+" +20% for " + multiplier[key].price + " cookies<br>you have +"+multiplier[key].multiplier*100+"%</div><br>";
+                multiplierHolder.innerHTML += htmlContent;
             }
-            let htmlContent = "<div onclick='buyMultiplier(\"" + key + "\")' class='allButton "+isDisabled+"'>"+key+" +20% for " + multiplier[key].price + " cookies<br>you have +"+multiplier[key].multiplier*100+"%</div><br>";
-            multiplierHolder.innerHTML += htmlContent;
         }
     }
 }
@@ -184,13 +202,28 @@ function loadMultipliers(){
 //draws the buildings to the screen
 function loadAllBuilding(){
     let loader = document.getElementById("buildingButtonHolder");
-    loader.innerHTML = ""
+    let shouldRefresh = false;
     for(let key in prices){
-        let isDisabled = "";
+        const previous = disabled[key];
         if(cookies < prices[key]){
-            isDisabled = "disabled";
+            disabled[key] = true;
+        }else{
+            disabled[key] = false;
         }
-        loader.innerHTML += "<div class='allButton "+isDisabled+"' onclick='buyBuilding(\"" + key + "\")'>buy one " + key + " for " + prices[key] + " cookie<br> gives: +"+ points[key]+"<br>you have: "+count[key]+"</div><br>";
+        if(previous != disabled[key]){
+            shouldRefresh = true;
+        }
+    }
+    if(shouldRefresh){
+        loader.innerHTML = "";
+        for(let key in prices){
+            let isDisabled = "";
+            if(disabled[key]){
+                isDisabled = "disabled";
+            }
+            loader.innerHTML += "<div class='allButton "+isDisabled+"' onclick='buyBuilding(\"" + key + "\")'>buy one " + key + " for " + prices[key] + " cookie<br> gives: +"+ points[key]+"<br>you have: "+count[key]+"</div><br>";
+            
+        }
     }
 }
 
