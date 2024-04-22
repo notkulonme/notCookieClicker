@@ -24,6 +24,13 @@ const coreData = {
     singleCLickPoint: 0,
 }
 
+const cpsHolder = {
+    holder : document.getElementById("cpsHolder"),
+    ready : true,
+    cps : 0,
+    cpsBoosted : 0,
+}
+
 const allBuildings = {};
 
 
