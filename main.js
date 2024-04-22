@@ -38,6 +38,8 @@ const cpsHolder = {
 const disabled = {}
 
 
+
+
 fillJSON();//fils the empty objects
 loadAllBuilding();// loads all building
 loadMultipliers();//loads all multiplier
@@ -155,7 +157,7 @@ function fillJSON(){
     for(let key in prices){
         multiplier[key] = {
             "multiplier":0,
-            "price": prices[key]+prices[key]*5
+            "price": prices[key]*6
             };
         count[key] = 0;
         //should be false to load them to the screen at start
@@ -232,3 +234,4 @@ function loadAllBuilding(){
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
