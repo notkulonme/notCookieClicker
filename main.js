@@ -9,7 +9,7 @@ class Building{
         this.count = 0;
         this.multiplierPercentage = 0;
         this.multiplierPrice = price *6;
-        this.disabled = false;
+        this.disabled = true;
     }
 }
 
@@ -21,7 +21,7 @@ const coreData = {
     priceModifier: 0.15,
     buildingCount: 0,
     multiplierCount: 0,
-    singleCLickPoint: 0,
+    singleCLickPoint: 1,
 }
 
 const cpsHolder = {
@@ -36,7 +36,7 @@ const allBuildings = {};
 
 //logic
 make_Buildings_And_Fill_allBuildings();
-
+buildHtml();
 
 
 
@@ -56,4 +56,33 @@ function make_Buildings_And_Fill_allBuildings(){
         allBuildings[buffer.name] = buffer;
     }
     console.log(allBuildings)
+}
+
+function buildHtml(){
+    const builingHolder = document.getElementById("buildingButtonHolder");
+    const multiplierHolder = document.getElementById("modifierHolder");
+
+    for(let name in allBuildings){
+        const building = allBuildings[name];
+        
+        builingHolder.innerHTML +=  "<div class='allButton disabled' id='"+building.name+"ID"+
+        "' onclick='buyBuilding(\"" + building.name + "B\")'>buy one " + building.name + " for " + building.price + 
+        " cookies<br> gives: +"+ building.point +"<br>you have: "+building.count+"</div><br>";
+
+        multiplierHolder.innerHTML += "<div onclick='buyBuilding(\"" + name+"M" + "\")' id='" + name+"MultiplierID" +"' class='allButton disabled'>"+name+" +20% for " + building.multiplierPrice + " cookies<br>you have +"+building.multiplierPercentage +"%</div><br>";
+    }
+}
+
+function clickHandler(type){
+    if(type == "user"){
+        incrementCookies(coreData.singleCLickPoint);
+    }
+    if(type == "cps"){
+        incrementCookies(coreData.cps)
+    }
+}
+
+function incrementCookies(count){
+    coreData.allBakedCookies += count;
+    coreData.currentCookies += count
 }
