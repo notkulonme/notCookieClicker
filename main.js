@@ -1,33 +1,28 @@
-let allBakedCookies = 0; // all baked cookies so far
-let cookies = 0; //current number of cookies
-//how many points a single click gives
-const priceModifier = 0.15; //modifies the price after evry new building
-//-----you have to define all the building in the 2 json------
-const points = {
-    "singleClick" : 1,
-    "Auto Clicker": 1,
-    "grandpa" : 100,
-    "Farm" : 1000,
-    "Robot" : 10000,
-};
-const prices={
-    "Auto Clicker":40,
-    "grandpa" : 150,
-    "Farm" : 1000,
-    "Robot" : 10000,
-};
-//-----you have to define all the building in the 2 json above------
+//organized version of the previuos code
 
+//variables
+class Building{
+    constructor(name, price, point){
+        this.name = name;
+        this.price = price;
+        this.point = point;
+        this.count = 0;
+        this.multiplierPercentage = 0;
+        this.multiplierPrice = price *6;
+        this.disabled = true;
+    }
+}
 
-const multiplier = {
-    "multiplier" : 0,//base multiplyer
-    "singleClick" : 0,
-};
-//dont touch it
-const count = {
-    buildings : 0,
-    multiplier : 0,
-};
+const coreData = {
+    allBakedCookies: 0,
+    currentCookies: 0,
+    multiplierSum: 0,
+    singleClickMultiplier: 0,
+    priceModifier: 0.15,
+    buildingCount: 0,
+    multiplierCount: 0,
+    singleCLickPoint: 1,
+}
 
 const cpsHolder = {
     holder : document.getElementById("cpsHolder"),
@@ -35,203 +30,59 @@ const cpsHolder = {
     cps : 0,
     cpsBoosted : 0,
 }
-const disabled = {}
+
+const allBuildings = {};
+
+
+//logic
+make_Buildings_And_Fill_allBuildings();
+buildHtml();
 
 
 
 
-fillJSON();//fils the empty objects
-loadAllBuilding();// loads all building
-loadMultipliers();//loads all multiplier
-console.log(Object.values(multiplier["Auto Clicker"]).includes(240));
 
-//handles both user input and automatic clicks
-function handleClick(type){
-    let newCookies = 0;
-    if(type !== "cps" && type !== "singleClick"){
-        newCookies = count[type]*points[type] + count[type]*points[type]*(multiplier.multiplier+multiplier[type].multiplier);
-    }
-    else if(type === "cps"){
-        newCookies = cpsHolder.cps + (cpsHolder.cps*multiplier.multiplier);
-    }
-    else if (type === "singleClick"){
-        newCookies = points.singleClick + points.singleClick*(multiplier.singleClick+multiplier.multiplier)
-    }
-    cookies += newCookies;
-    allBakedCookies += newCookies;
-    refresh();
-}
 
-//refreshes the main value holders
-function refresh(){
-    document.getElementById("cookieHolder").innerText = "Cookies: "+ Math.round(cookies);
-    document.getElementById("allCookieHolder").innerText = "all baked cookies: "+Math.round(allBakedCookies);
+
+//functions
+function make_Buildings_And_Fill_allBuildings(){
+    //contanis all
+    let buildingListBuffer = []
+    buildingListBuffer.push(new Building("Clicker",40,1), new Building("grandpa",300,10), new Building("Farm",1000,20), new Building("Robot",2000,50))
     
-    recalculateMultiplier();
-    cpsHolder.cpsBoosted = cpsHolder.cps + cpsHolder.cps*multiplier.multiplier;
-    if(cpsHolder.ready){
-        cpsHolder.holder.innerText = "cps: " + cpsHolder.cpsBoosted;
+    console.log(buildingListBuffer)
+    for(i = 0; i < buildingListBuffer.length; i++){
+        const buffer = buildingListBuffer[i];
+        allBuildings[buffer.name] = buffer;
     }
-    document.getElementById("cpsPlus").innerText = "current boost: "+(multiplier.multiplier*100).toFixed(2)+"%";
-    loadAllBuilding();
-    loadMultipliers();
+    console.log(allBuildings)
 }
 
-//handles buying a new building
-function buyBuilding(type){
-    if (cookies >= prices[type]){
-        //raises the variables
-        cookies = cookies - prices[type];
-        count.buildings += 1;
-        cpsHolder.cps += points[type];
-        count[type] += 1;
-        //sets new prize for the building
-        prices[type] = prices[type] + Math.round(prices[type]*priceModifier) 
-        
-        
-        //refreshes the screen
-        refresh();
-    }
-    else if(count.buildings>0){
-        noBuy("not enough cookie");
-    }
-
-}
-
-//handles buying a new multiplier
-function buyMultiplier(bought){
-
-    if(count[bought]!=0 && cookies >= multiplier[bought].price){
-        multiplier[bought].multiplier += 0.2; //+20%
-        multiplier[bought].price = multiplier[bought].price * 2; //double those prices
-
-        //recalculates the cps
-        recalculateMultiplier();
-
-        cpsHolder.cpsBoosted = cpsHolder.cps + (cpsHolder.cps*multiplier.multiplier);
-
-        refresh();
-        count.multiplier += 1;
-        
-    }
-    else if(count.buildings > 0){
-        noBuy("you have to buy the building first");
-    }
-    else{
-        noBuy("not enough cookies");
-    }
-
-   
-}
-
-function recalculateMultiplier(){
-    multiplier.multiplier = 0;//because of the recalculation
-    for(let key in multiplier){
-        if(key != "multiplier" && key != "singleClick" && count[key] > 0){
-            multiplier.multiplier += count[key]/count.buildings * multiplier[key].multiplier;;
-        }
-    }
-}
-
-// changes the texts after the first click
-function firstClick(){
-    handleClick("singleClick");
-    setInterval(function(){ handleClick("cps");}, 1000); 
-    document.getElementById("clickButtonHolder").innerHTML = '<img src="cookie.png" width="10%" class="rotating" onclick="handleClick(\'singleClick\')">';
-}
-
-
-
-
-//writes to cps place holder if the buying has failed
-async function noBuy(cause){
-    cpsHolder.ready = false;
-    document.getElementById("cpsHolder").innerText = cause;
-    await sleep(3000);
-    document.getElementById("cpsHolder").innerText = "cps: "+cpsHolder.cps;
-    cpsHolder.ready = true;
-}
-
-function fillJSON(){
-    count.buildings = 0;
-    for(let key in prices){
-        multiplier[key] = {
-            "multiplier":0,
-            "price": prices[key]*6
-            };
-        count[key] = 0;
-        //should be false to load them to the screen at start
-        disabled[key] = false;
-        disabled[key+"multiplier"] = false;
-    }
-}
-
-//draws the multipliers to the screen
-function loadMultipliers(){
-    
+function buildHtml(){
+    const builingHolder = document.getElementById("buildingButtonHolder");
     const multiplierHolder = document.getElementById("modifierHolder");
-   
-    let shouldRefresh = false;
-    
-    for(let key in multiplier){
-        let previous = disabled[key+"multiplier"];
-        if(cookies < multiplier[key].price || count[key] == 0){
-            disabled[key+"multiplier"] = true;
-        }
-        else{
-            disabled[key+"multiplier"] = false;
-        }
+
+    for(let name in allBuildings){
+        const building = allBuildings[name];
         
-        if(previous != disabled[key+"multiplier"]){
-            shouldRefresh = true;
-        }
-    }
-    if(shouldRefresh){
-        multiplierHolder.innerHTML = "";
-        for(let key in multiplier){
-            if(key != "multiplier" && key != "singleClick"){
-                let isDisabled = "";
-                if(disabled[key+"multiplier"]){
-                    isDisabled = "disabled"
-                }
-                let htmlContent = "<div onclick='buyMultiplier(\"" + key + "\")' class='allButton "+isDisabled+"'>"+key+" +20% for " + multiplier[key].price + " cookies<br>you have +"+multiplier[key].multiplier*100+"%</div><br>";
-                multiplierHolder.innerHTML += htmlContent;
-            }
-        }
+        builingHolder.innerHTML +=  "<div class='allButton disabled' id='"+building.name+"ID"+
+        "' onclick='buyBuilding(\"" + building.name + "B\")'>buy one " + building.name + " for " + building.price + 
+        " cookies<br> gives: +"+ building.point +"<br>you have: "+building.count+"</div><br>";
+
+        multiplierHolder.innerHTML += "<div onclick='buyBuilding(\"" + name+"M" + "\")' id='" + name+"MultiplierID" +"' class='allButton disabled'>"+name+" +20% for " + building.multiplierPrice + " cookies<br>you have +"+building.multiplierPercentage +"%</div><br>";
     }
 }
 
-//draws the buildings to the screen
-function loadAllBuilding(){
-    let loader = document.getElementById("buildingButtonHolder");
-    let shouldRefresh = false;
-    for(let key in prices){
-        const previous = disabled[key];
-        if(cookies < prices[key]){
-            disabled[key] = true;
-        }else{
-            disabled[key] = false;
-        }
-        if(previous != disabled[key]){
-            shouldRefresh = true;
-        }
+function clickHandler(type){
+    if(type == "user"){
+        incrementCookies(coreData.singleCLickPoint);
     }
-    if(shouldRefresh){
-        loader.innerHTML = "";
-        for(let key in prices){
-            let isDisabled = "";
-            if(disabled[key]){
-                isDisabled = "disabled";
-            }
-            loader.innerHTML += "<div class='allButton "+isDisabled+"' onclick='buyBuilding(\"" + key + "\")'>buy one " + key + " for " + prices[key] + " cookie<br> gives: +"+ points[key]+"<br>you have: "+count[key]+"</div><br>";
-            
-        }
+    if(type == "cps"){
+        incrementCookies(coreData.cps)
     }
 }
 
-
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
+function incrementCookies(count){
+    coreData.allBakedCookies += count;
+    coreData.currentCookies += count
 }
-
