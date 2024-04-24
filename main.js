@@ -11,12 +11,27 @@ class Building{
         this.multiplierPrice = price *6;
         this.disabled = true;
     }
+
+    buyBuilding() {
+        if(coreData.currentCookies >= this.price){
+            coreData.currentCookies -= this.price;
+            this.count += 1;
+            this.price *= coreData.priceModifier;
+            console.log("succesful transaction")
+            //refresh()
+        }
+        else{
+            console.error("not enogh cookies");
+        }
+    }
+    //TODO: a refresher function which is capable of refreshing the buildings and multipliers holder
+    
 }
 
 const coreData = {
     allBakedCookies: 0,
     currentCookies: 0,
-    multiplierSum: 0,
+    cpsMultiplier: 0,
     singleClickMultiplier: 0,
     priceModifier: 0.15,
     buildingCount: 0,
@@ -30,6 +45,7 @@ const cpsHolder = {
     cps : 0,
     cpsBoosted : 0,
 }
+
 
 const allBuildings = {};
 
@@ -85,4 +101,19 @@ function clickHandler(type){
 function incrementCookies(count){
     coreData.allBakedCookies += count;
     coreData.currentCookies += count
+}
+
+function buyBuilding(buildingNameT){
+    const buildingType = buildingNameT.substring(buildingNameT.length-1);
+    const buildingName = buildingNameT.substring(0, buildingNameT.length-1);
+
+    if(buildingType == "B"){
+        allBuildings[buildingName].buyBuilding();
+    }
+    else if(buildingType == "M"){
+        allBuildings[buildingName].buyMultiplier();
+    }
+    else{
+        console.error("Invalid argument");
+    }
 }
